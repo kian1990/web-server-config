@@ -1,0 +1,41 @@
+----Create a private key and self-signed certificate. This is adequate for most installations that do not require a CSR----
+# mkdir /etc/httpd/ssl
+# cd /etc/httpd/ssl
+# openssl req -new -x509 -nodes -newkey rsa:4096 -keyout server.key -out server.crt -days 1095
+# chmod 400 server.key
+
+----If you need to create a CSR, follow these keygen instructions instead of the above----
+# mkdir /etc/httpd/ssl
+# cd /etc/httpd/ssl
+# openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out server.key
+# chmod 400 server.key
+# openssl req -new -sha256 -key server.key -out server.csr
+# openssl x509 -req -days 1095 -in server.csr -signkey server.key -out server.crt
+
+----/etc/httpd/conf.d/vhosts.conf----
+<VirtualHost *:80>
+    ServerAdmin kian
+    DocumentRoot "/home/httpd"
+    ServerName www.kian.xin
+    ServerAlias www.kian.xin
+    ErrorLog "/var/log/httpd/error_log"
+    CustomLog "/var/log/httpd/access_log" common
+    <Directory "/home/httpd">
+        Require all granted
+    </Directory>
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerAdmin kian
+    DocumentRoot "/home/httpd"
+    ServerName www.kian.xin:443
+    ServerAlias www.kian.xin:443
+    SSLEngine on
+    SSLCertificateFile "/etc/httpd/ssl/server.crt"
+    SSLCertificateKeyFile "/etc/httpd/ssl/server.key"
+    ErrorLog "/var/log/httpd/error_log"
+    CustomLog "/var/log/httpd/access_log" common
+    <Directory "/home/httpd">
+        Require all granted
+    </Directory>
+</VirtualHost>
